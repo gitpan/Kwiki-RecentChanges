@@ -1,12 +1,9 @@
 package Kwiki::RecentChanges;
-use strict;
-use warnings;
-use Kwiki::Plugin '-Base';
+use Kwiki::Plugin -Base;
 use mixin 'Kwiki::Installer';
-our $VERSION = '0.11';
+our $VERSION = '0.12';
 
 const class_id => 'recent_changes';
-const class_title => 'Recent Changes';
 const css_file => 'recent_changes.css';
 
 sub register {
@@ -52,8 +49,6 @@ sub recent_changes {
     );
 }
 
-1;
-
 __DATA__
 
 =head1 NAME 
@@ -79,27 +74,21 @@ See http://www.perl.com/perl/misc/Artistic.html
 
 =cut
 __template/tt2/recent_changes_button.html__
-<!-- BEGIN recent_changes_button.html -->
 <a href="[% script_name %]?action=recent_changes" accesskey="c" title="Recent Changes">
 [% INCLUDE recent_changes_button_icon.html %]
 </a>
-<!-- END recent_changes_button.html -->
 __template/tt2/recent_changes_button_icon.html__
-<!-- BEGIN recent_changes_button_icon.html -->
 Changes
-<!-- END recent_changes_button_icon.html -->
 __template/tt2/recent_changes_content.html__
-<!-- BEGIN recent_changes_content.html -->
 <table class="recent_changes">
 [% FOR page = pages %]
 <tr>
-<td class="page_id">[% page.kwiki_link %]</td>
+<td class="page_name">[% page.kwiki_link %]</td>
 <td class="edit_by">[% page.edit_by_link %]</td>
 <td class="edit_time">[% page.edit_time %]</td>
 </tr>
 [% END %]
 </table>
-<!-- END recent_changes_content.html -->
 __css/recent_changes.css__
 table.recent_changes {
     width: 100%;
@@ -110,7 +99,7 @@ table.recent_changes td {
     padding: .2em 1em .2em 1em;
 }
 
-table.recent_changes td.page_id   { 
+table.recent_changes td.page_name   { 
     text-align: left;
 }
 table.recent_changes td.edit_by   { 

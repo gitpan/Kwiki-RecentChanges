@@ -1,13 +1,13 @@
 name: Kwiki-RecentChanges
-version: 0.11
+version: 0.12
 abstract: Kwiki Plugin to Display Recent Changes
 author: Brian Ingerson <ingy@cpan.org>
 license: perl
 distribution_type: module
 requires:
   perl: 5.6.1
-  Kwiki: 0.32
+  Kwiki: 0.34
 no_index:
   directory:
     - inc
-generated_by: Module::Install version 0.33
+generated_by: Module::Install version 0.36
