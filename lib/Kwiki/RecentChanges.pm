@@ -2,13 +2,12 @@ package Kwiki::RecentChanges;
 use strict;
 use warnings;
 use Kwiki::Plugin '-Base';
-use Kwiki::Installer '-base';
-our $VERSION = '0.10';
+use mixin 'Kwiki::Installer';
+our $VERSION = '0.11';
 
 const class_id => 'recent_changes';
 const class_title => 'Recent Changes';
 const css_file => 'recent_changes.css';
-const screen_template => 'recent_changes_screen.html';
 
 sub register {
     my $registry = shift;
@@ -16,9 +15,7 @@ sub register {
     $registry->add(toolbar => 'recent_changes_button', 
                    template => 'recent_changes_button.html',
                   );
-    $registry->add(preference => 'recent_changes_depth', 
-                   object => $self->recent_changes_depth,
-                  );
+    $registry->add(preference => $self->recent_changes_depth);
 }
 
 sub recent_changes_depth {
@@ -48,9 +45,10 @@ sub recent_changes {
     @$pages = sort { 
         $b->modified_time <=> $a->modified_time 
     } $self->pages->all_since($depth * 1440);
+    my $num = @$pages;
     $self->render_screen( 
         pages => $pages,
-        screen_title => "Changes in the $label:",
+        screen_title => "$num Changes in the $label:",
     );
 }
 
@@ -90,9 +88,8 @@ __template/tt2/recent_changes_button_icon.html__
 <!-- BEGIN recent_changes_button_icon.html -->
 Changes
 <!-- END recent_changes_button_icon.html -->
-__template/tt2/recent_changes_screen.html__
-<!-- BEGIN recent_changes_screen.html -->
-[% INCLUDE kwiki_layout_begin.html %]
+__template/tt2/recent_changes_content.html__
+<!-- BEGIN recent_changes_content.html -->
 <table class="recent_changes">
 [% FOR page = pages %]
 <tr>
@@ -102,8 +99,7 @@ __template/tt2/recent_changes_screen.html__
 </tr>
 [% END %]
 </table>
-[% INCLUDE kwiki_layout_end.html %]
-<!-- END recent_changes_screen.html -->
+<!-- END recent_changes_content.html -->
 __css/recent_changes.css__
 table.recent_changes {
     width: 100%;
