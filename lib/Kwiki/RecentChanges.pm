@@ -1,7 +1,7 @@
 package Kwiki::RecentChanges;
 use Kwiki::Plugin -Base;
 use mixin 'Kwiki::Installer';
-our $VERSION = '0.12';
+our $VERSION = '0.13';
 
 const class_id => 'recent_changes';
 const css_file => 'recent_changes.css';
@@ -28,6 +28,7 @@ sub recent_changes_depth {
         30 => 'Last Month',
         60 => 'Last 2 Months',
         90 => 'Last 3 Months',
+        182 => 'Last 6 Months',
     ];
     $p->choices($choices);
     $p->default(7);

@@ -1,3 +1,9 @@
+---
+version: 0.13
+date:    Tue Jan 11 08:10:33 PST 2005
+changes:
+- Add 6 months option
+---
 version: 0.12
 date:    Wed Dec 15 15:34:24 PST 2004
 changes:
