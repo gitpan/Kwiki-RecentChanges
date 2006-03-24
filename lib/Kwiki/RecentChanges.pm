@@ -1,17 +1,24 @@
 package Kwiki::RecentChanges;
 use Kwiki::Plugin -Base;
 use mixin 'Kwiki::Installer';
-our $VERSION = '0.13';
+our $VERSION = '0.14';
 
 const class_id => 'recent_changes';
 const css_file => 'recent_changes.css';
+const cgi_class => 'Kwiki::RecentChanges::CGI';
 
 sub register {
     my $registry = shift;
+    $registry->add(action => 'recent_changes_ajax_list');
     $registry->add(action => 'recent_changes');
     $registry->add(toolbar => 'recent_changes_button', 
                    template => 'recent_changes_button.html',
                   );
+    $registry->add(toolbar => 'recent_changes_options', 
+                   template => 'recent_changes_options.html',
+                   show_for => 'recent_changes'
+                  );
+
     $registry->add(preference => $self->recent_changes_depth);
 }
 
@@ -35,9 +42,26 @@ sub recent_changes_depth {
     return $p;
 }
 
-sub recent_changes {
+sub recent_changed_pages {
     my $depth_object = $self->preferences->recent_changes_depth;
     my $depth = $depth_object->value;
+    my $label = +{@{$depth_object->choices}}->{$depth};
+    my $pages;
+    @$pages = sort { 
+        $b->modified_time <=> $a->modified_time 
+    } $self->pages->all_since($depth * 1440);
+    return $pages;
+}
+
+sub recent_changes_ajax_list {
+    my $pages = $self->recent_changed_pages;
+    $self->hub->headers->content_type("text/xml");
+    $self->template_process('recent_changes_ajax_list.xml', pages => $pages);
+}
+
+sub recent_changes {
+    my $depth_object = $self->preferences->recent_changes_depth;
+    my $depth = $self->cgi->depth || $depth_object->value;
     my $label = +{@{$depth_object->choices}}->{$depth};
     my $pages;
     @$pages = sort { 
@@ -49,6 +73,13 @@ sub recent_changes {
         screen_title => "$num Changes in the $label:",
     );
 }
+
+package Kwiki::RecentChanges::CGI;
+use Kwiki::CGI -base;
+
+cgi 'depth';
+
+package Kwiki::RecentChanges;
 
 __DATA__
 
@@ -84,12 +115,58 @@ __template/tt2/recent_changes_content.html__
 <table class="recent_changes">
 [% FOR page = pages %]
 <tr>
-<td class="page_name">[% page.kwiki_link %]</td>
+<td class="page_name">
+[% IF recent_changes_action %]
+<a href="[% script_name %]?action=[% recent_changes_action %];page_name=[% page.uri %]">[% page.title %]</a>
+[% ELSE %]
+[% page.kwiki_link %]
+[% END %]
+</td>
 <td class="edit_by">[% page.edit_by_link %]</td>
 <td class="edit_time">[% page.edit_time %]</td>
 </tr>
 [% END %]
 </table>
+__template/tt2/recent_changes_options.html__
+[%- choices = {
+        '1'   => 'Last 24 hours',
+        '2'   => 'Last 2 Days',
+        '3'   => 'Last 3 Days',
+        '7'   => 'Last Week',
+        '14'  => 'Last 2 Weeks',
+        '30'  => 'Last Month',
+        '60'  => 'Last 2 Months',
+        '90'  => 'Last 3 Months',
+        '182' => 'Last 6 Months'
+   }
+-%]
+<form class="recent_changes_options"
+      name="recent_changes_options"
+      action="[% script_name %]">
+<input type="hidden" name="action" value="recent_changes" />
+<span>In</span>
+<select name="depth">
+[%- FOREACH c = choices.keys.nsort -%]
+    <option onclick="this.parentNode.parentNode.submit();"
+[%- IF hub.recent_changes.cgi.depth == c -%]
+            selected="selected"
+[%- END -%]
+            value="[% c %]">[% choices.$c %]</option>
+[%- END -%]
+</select>
+</form>
+__template/tt2/recent_changes_ajax_list.xml__
+<?xml version="1.0" encoding="UTF-8"?>
+<recent_changes>
+[% FOR page = pages %]
+  <page_name>[% page.title %]</page_name>
+  <page_uri>[% page.uri %]</page_uri>
+  <edit_by>[% page.metadata.edit_by %]</edit_by>
+  <edit_unixtime>[% page.metadata.edit_unixtime || page.modified_time %]</edit_unixtime>
+  <edit_time>[% page.edit_time %]</edit_time>
+[% END %]
+</recent_changes>
+
 __css/recent_changes.css__
 table.recent_changes {
     width: 100%;
@@ -109,3 +186,4 @@ table.recent_changes td.edit_by   {
 table.recent_changes td.edit_time { 
     text-align: right;
 }
+form.recent_changes_options { display: inline; }
